@@ -195,6 +195,20 @@ files = [
 ]
 
 [[package]]
+name = "paho-mqtt"
+version = "1.6.1"
+description = "MQTT version 5.0/3.1.1 client class"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "paho-mqtt-1.6.1.tar.gz", hash = "sha256:2a8291c81623aec00372b5a85558a372c747cbca8e9934dfe218638b8eefc26f"},
+]
+
+[package.extras]
+proxy = ["PySocks"]
+
+[[package]]
 name = "pathspec"
 version = "0.11.1"
 description = "Utility library for gitignore style pattern matching of file paths."
@@ -259,6 +273,18 @@ files = [
 ]
 
 [[package]]
+name = "types-paho-mqtt"
+version = "1.6.0.6"
+description = "Typing stubs for paho-mqtt"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-paho-mqtt-1.6.0.6.tar.gz", hash = "sha256:c2c263ee33010b23b2c53c1a6c4b4515ba6f94e8fa391e969c0e8cdd0256de49"},
+    {file = "types_paho_mqtt-1.6.0.6-py3-none-any.whl", hash = "sha256:c1314b3571fe7699f5e545f83c860a9a1edb885237649afe243dd0aca2f0d725"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.5.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -273,4 +299,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "b44af8fd6774b8ef47ba69f89de19da5f61bca768233310c091cea002cae20ed"
+content-hash = "5a8c8259bc1fe5d839663adb1727635543a5191eb3c1798a063fc173406f9dbb"
