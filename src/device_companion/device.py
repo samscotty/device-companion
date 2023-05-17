@@ -6,6 +6,7 @@ from time import sleep
 from typing import Iterator
 
 from .domain import Command, Message, Response
+from .mqtt import MqttClient
 from .watcher import AckWatcher
 
 
@@ -68,6 +69,43 @@ class DummyDevice(Device):
 
     def is_connected(self) -> bool:
         return self._connected
+
+
+class MqttDevice(Device):
+    def __init__(self, mqtt: MqttClient, topic: str) -> None:
+        super().__init__()
+        self.mqtt = mqtt
+        self._topic = topic
+
+        # Consumer handler
+        self.mqtt.observe(self._handle_message)
+
+    @property
+    def topic(self) -> str:
+        return self._topic
+
+    def _send(self, command: Command) -> None:
+        self.mqtt.publish(f"{self.topic}/commands", command.message.serialise())
+
+    def _receive(self, response: Response) -> None:
+        ...
+
+    def connect(self) -> None:
+        self.mqtt.connect()
+        # Subscribe to the response topic
+        self.mqtt.subscribe(f"{self.topic}/responses")
+
+    def disconnect(self) -> None:
+        self.mqtt.disconnect()
+
+    def is_connected(self) -> bool:
+        return self.mqtt.is_connected()
+
+    def _handle_message(self, payload: dict[str, str]) -> None:
+        if not (message := payload.get("string")):
+            return None
+        response = Response(Message(message))
+        self.receive(response)
 
 
 @contextmanager
