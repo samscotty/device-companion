@@ -2,7 +2,7 @@ from collections import deque
 from dataclasses import dataclass
 from threading import Event, Thread
 
-from .domain import Command, Error, Message, Response
+from .communication import Command, Error, Message, Response
 
 
 @dataclass
@@ -42,7 +42,7 @@ class AckWatcher:
         watched = self._queue.popleft()
 
         for ack in watched.command.acks:
-            if ack(communication.message.string):
+            if ack(communication.message):
                 watched.event.set()
                 break
         else:
