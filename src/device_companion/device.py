@@ -5,7 +5,7 @@ from threading import Thread
 from time import sleep
 from typing import Iterator
 
-from .domain import Command, Message, Response
+from .communication import Command, Message, Response
 from .mqtt import MqttClient
 from .watcher import AckWatcher
 

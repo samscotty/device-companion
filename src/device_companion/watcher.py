@@ -2,7 +2,7 @@ from collections import deque
 from dataclasses import dataclass
 from threading import Event, Thread
 
-from .domain import Command, Error, Message, Response
+from .communication import Command, Error, Message, Response
 
 
 @dataclass
