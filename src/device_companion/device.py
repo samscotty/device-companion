@@ -73,7 +73,7 @@ class DummyDevice(Device):
 
 class MqttDevice(Device):
 
-    """Device that sends and recieves messages via an MQTT broker.
+    """Device that sends and receives messages via an MQTT broker.
 
     Args:
         mqtt: MQTT client.
