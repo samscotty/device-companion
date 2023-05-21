@@ -45,11 +45,21 @@ class MqttClient:
 
     def connect(self) -> None:
         """Establish an MQTT connection to a remote broker."""
+        if self.is_connected():
+            logger.debug("MQTT client is already connected.")
+            return None
+
+        logger.debug("Establishing connection to MQTT client.")
         self.client.connect(self.host, self.port)
         self.client.loop_start()
 
     def disconnect(self) -> None:
         """Disconnect a connected MQTT client from the broker."""
+        if not self.is_connected():
+            logger.debug("MQTT client is already disconnected.")
+            return None
+
+        logger.debug("Disconnecting from MQTT client.")
         self.client.loop_stop()
         self.client.disconnect()
 
