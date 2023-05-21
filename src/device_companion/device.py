@@ -72,33 +72,55 @@ class DummyDevice(Device):
 
 
 class MqttDevice(Device):
-    def __init__(self, mqtt: MqttClient, topic: str) -> None:
+
+    """Device that sends and recieves messages via an MQTT broker.
+
+    Args:
+        mqtt: MQTT client.
+        name: Unique name for the device.
+        topic: Name of the root topic level.
+
+    """
+
+    def __init__(self, mqtt: MqttClient, name: str, topic: str | None = None) -> None:
         super().__init__()
         self.mqtt = mqtt
-        self._topic = topic
+
+        assert name, "Device name cannot be an empty string"
+        self._name = name
+        self._topic = topic or "devices"
 
         # Consumer handler
         self.mqtt.observe(self._handle_message)
 
     @property
+    def name(self) -> str:
+        """Name of the current device."""
+        return self._name
+
+    @property
     def topic(self) -> str:
+        """Name of the root topic level."""
         return self._topic
 
     def _send(self, command: Command) -> None:
-        self.mqtt.publish(f"{self.topic}/commands", command.message.serialise())
+        self.mqtt.publish(f"{self.topic}/{self.name}/commands", command.message.serialise())
 
     def _receive(self, response: Response) -> None:
         ...
 
     def connect(self) -> None:
+        """Connect the MQTT client."""
         self.mqtt.connect()
         # Subscribe to the response topic
-        self.mqtt.subscribe(f"{self.topic}/responses")
+        self.mqtt.subscribe(f"{self.topic}/{self.name}/responses")
 
     def disconnect(self) -> None:
+        """Disconnect the MQTT client."""
         self.mqtt.disconnect()
 
     def is_connected(self) -> bool:
+        """Check connection status of the MQTT client."""
         return self.mqtt.is_connected()
 
     def _handle_message(self, payload: dict[str, str]) -> None:
