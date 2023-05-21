@@ -42,7 +42,7 @@ class AckWatcher:
         watched = self._queue.popleft()
 
         for ack in watched.command.acks:
-            if ack(communication.message.string):
+            if ack(communication.message):
                 watched.event.set()
                 break
         else:

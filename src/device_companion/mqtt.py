@@ -1,12 +1,11 @@
-import json
 import logging
-from typing import Any, Callable
+from typing import Callable
 
 import paho.mqtt.client as mqtt
 
 logger = logging.getLogger(__name__)
 
-Observer = Callable[[dict[str, Any]], None]
+Observer = Callable[[str | bytes | bytearray], None]
 
 
 class MqttClient:
@@ -72,7 +71,7 @@ class MqttClient:
         """
         return self.client.is_connected()
 
-    def publish(self, topic: str, message: dict[str, Any], qos: int = 0) -> None:
+    def publish(self, topic: str, message: str, qos: int = 0) -> None:
         """Publish a message to a topic.
 
         Args:
@@ -81,7 +80,7 @@ class MqttClient:
             qos: Quality of service level.
 
         """
-        result = self.client.publish(topic, json.dumps(message), qos=qos)
+        result = self.client.publish(topic, message, qos=qos)
         result.wait_for_publish()
 
     def subscribe(self, topic: str, qos: int = 0) -> None:
@@ -107,10 +106,9 @@ class MqttClient:
     def _on_message(self, client: mqtt.Client, userdata: None, message: mqtt.MQTTMessage) -> None:
         """Internal callback function that gets called when an MQTT message is received."""
         logger.info(f"Handled message: {message.topic}: {str(message.payload)}")
-        payload = json.loads(message.payload)
         # Notify the consumers
         for observer in self._observers:
-            observer(payload)
+            observer(message.payload)
 
     @staticmethod
     def _on_connect(client: mqtt.Client, userdata: None, flags: object, rc: int) -> None:

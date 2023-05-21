@@ -123,10 +123,8 @@ class MqttDevice(Device):
         """Check connection status of the MQTT client."""
         return self.mqtt.is_connected()
 
-    def _handle_message(self, payload: dict[str, str]) -> None:
-        if not (message := payload.get("string")):
-            return None
-        response = Response(Message(message))
+    def _handle_message(self, payload: str | bytes | bytearray) -> None:
+        response = Response(Message.deserialise(payload))
         self.receive(response)
 
 
