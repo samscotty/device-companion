@@ -1,37 +1,55 @@
+import dataclasses
 from collections import deque
-from dataclasses import dataclass
 from threading import Event, Thread
 
 from .communication import Command, Error, Message, Response
 
 
-@dataclass
+@dataclasses.dataclass
 class WatchedCommand:
     command: Command
-    event: Event
+    event: Event = dataclasses.field(default_factory=Event, init=False)
+
+    def seen(self) -> bool:
+        """Check if an acknowledgement has been received before the timeout."""
+        return self.event.wait(self.command.ack.timeout)
+
+    def acknowledge(self) -> None:
+        """Acknowledge watched command."""
+        self.event.set()
 
 
 class AckWatcher:
+
+    """Watch for device acknowledgements.
+
+    Waits for a device to inform of the state of a previously received message.
+    If ACKs have been specified for a command and none were received in the
+    expected interval, a timeout error is raised.
+
+    """
+
     def __init__(self) -> None:
         self._queue: deque[WatchedCommand] = deque()
 
     def _watch(self, watched: WatchedCommand) -> None:
-        if not watched.event.wait(watched.command.timeout):
-            self._queue.clear()
-            self(Error(Message(f"{watched.command.message.string} not acknowledged"), TimeoutError))
+        if watched.seen():
+            return None
+
+        self._queue.clear()
+        self(Error(Message(f"{watched.command.message.payload} not acknowledged"), TimeoutError))
 
     def __call__(self, communication: Command | Response | Error) -> None:
         if isinstance(communication, Error):
-            raise communication.exception(communication.message.string)
+            raise communication.exception(communication.message.payload)
         elif isinstance(communication, Command):
             # Do not watch if the command has no acknowledgements
-            if not communication.acks:
+            if not communication.ack:
                 return None
 
-            event = Event()
-            command = WatchedCommand(communication, event)
-            self._queue.append(command)
-            thread = Thread(target=self._watch, args=(command,))
+            watched = WatchedCommand(communication)
+            self._queue.append(watched)
+            thread = Thread(target=self._watch, args=(watched,))
             thread.start()
             thread.join()
             return None
@@ -41,9 +59,9 @@ class AckWatcher:
         # Get the next watched command from the queue
         watched = self._queue.popleft()
 
-        for ack in watched.command.acks:
-            if ack(communication.message):
-                watched.event.set()
+        for matcher in watched.command.ack.matchers:
+            if matcher(communication):
+                watched.acknowledge()
                 break
         else:
             # Return to priority in the queue if no matches
